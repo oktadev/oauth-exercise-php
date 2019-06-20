@@ -17,6 +17,10 @@ php -S 127.0.0.1:8080
 
 This is a static HTML page that you can use as a template to try out the Implicit flow for OAuth or OpenID Connect.
 
+`pkce.html`
+
+This is a static HTML page that you can use to complete the authorization code flow with PKCE in pure JavaScript. The code is based off of the code from the blog post [Is the OAuth 2.0 Implicit Flow Dead?](https://developer.okta.com/blog/2019/05/01/is-the-oauth-implicit-flow-dead#start-using-pkce-in-javascript-today)
+
 `client-credentials.php`
 
 Try getting an access token via the Client Credentials grant.
