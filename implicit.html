@@ -1,4 +1,3 @@
-<script src="//ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
 
 <div id="login">
 	<a href="">Log In</a>
@@ -6,20 +5,23 @@
 
 <div id="signed-in">
 	<p><b>Access Token</b></p>
-	<code style="word-wrap: break-word;"><code>
+	<code style="word-wrap: break-word;" id="access-token"><code>
 </div>
 
 <script>
-$(function(){
 var token;
 if(window.location.hash && (token=window.location.hash.match("access_token=([^&]+)")[1])) {
   
   console.log(token);
 
-  $("#login").hide();
-  $("#signed-in code").text(token);
+  document.getElementById("login").classList.add("hidden");
+  document.getElementById("access-token").innerText = token;
 
 }
-});
 </script>
 
+<style>
+.hidden {
+	display: none;
+}
+</style>
