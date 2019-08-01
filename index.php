@@ -140,7 +140,7 @@ if(isset($_GET['code'])) {
 
 
   // Extract the user's email address from the ID token and save it in the session
-  if(property_exists('id_token', $response)) {
+  if(property_exists($response, 'id_token')) {
     $id_token = $response->id_token;
     $claims_component = explode('.', $id_token)[1];
     $userinfo = json_decode(base64_decode($claims_component));
