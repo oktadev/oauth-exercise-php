@@ -100,6 +100,8 @@ if(isset($_GET['code'])) {
   }
 
 
+  die();
+
 
   // Exchange the authorization code now!
   $response = http($metadata->token_endpoint, [
@@ -127,6 +129,7 @@ if(isset($_GET['code'])) {
 
   echo '<h3>Access Token Response</h3>';
   echo '<pre>'; print_r($response); echo '</pre>';
+  die();
 
 
 
