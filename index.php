@@ -12,36 +12,6 @@ session_start();
 
 
 
-// If they click log out, destroy the session and redirect to the home page
-if(isset($_GET['logout'])) {
-  session_destroy();
-  header('Location: /');
-  die();
-}
-
-
-
-
-
-
-
-
-
-
-
-// If there is a username, they are logged in, and we'll show a simple logged-in view
-if(isset($_SESSION['username'])) {
-  echo '<p>Logged in as</p>';
-  echo '<p>' . $_SESSION['username'] . '</p>';
-  echo '<p><a href="/?logout">Log Out</a></p>';
-  die();
-}
-
-
-
-
-
-
 
 
 
@@ -62,6 +32,33 @@ $metadata = http($metadata_url);
 
 
 
+
+
+
+
+// If they click log out, destroy the session and redirect
+if(isset($_GET['logout'])) {
+  session_destroy();
+  header('Location: '.$metadata->end_session_endpoint.'?'.http_build_query([
+    'id_token_hint' => $_SESSION['id_token'],
+    'post_logout_redirect_uri' => $redirect_uri,
+  ]));
+  #header('Location: /');
+  die();
+}
+
+
+
+
+
+// If there is a username, they are logged in, and we'll show a simple logged-in view
+if(isset($_SESSION['sub'])) {
+  echo '<h2>Dashboard</h2>';
+  echo '<p>Logged in as</p>';
+  echo '<p>' . $_SESSION['name'] . '</p>';
+  echo '<p><a href="/?logout">Log Out</a></p>';
+  die();
+}
 
 
 
@@ -89,8 +86,35 @@ if(isset($_GET['error'])) {
 
 
 
-// If the AS redirected here with a code, we can try to exchange it for an access token
-if(isset($_GET['code'])) {
+if(!isset($_GET['code'])) {
+
+
+
+
+
+  // Create the link to send the user to log in
+
+  // Generate a random state parameter for CSRF security
+  $_SESSION['state'] = bin2hex(random_bytes(5));
+
+  
+  // Build the authorization URL by starting with the authorization endpoint
+  // and adding a few query string parameters identifying this application
+  $authorize_url = $metadata->authorization_endpoint.'?'.http_build_query([
+  ]);
+
+  echo '<p>Not logged in</p>';
+  echo '<p><a href="'.$authorize_url.'">Log In</a></p>';
+
+  // header('Location: '.$authorize_url);
+
+
+
+
+
+
+} else {
+  // If the AS redirected here with a code, we can try to exchange it for an access token
 
 
 
@@ -100,12 +124,12 @@ if(isset($_GET['code'])) {
   }
 
 
-  die();
+
+
 
 
   // Exchange the authorization code now!
   $response = http($metadata->token_endpoint, [
-    // TODO: fill in the post body parameters here!
   ]);
 
 
@@ -129,7 +153,7 @@ if(isset($_GET['code'])) {
 
   echo '<h3>Access Token Response</h3>';
   echo '<pre>'; print_r($response); echo '</pre>';
-  die();
+  
 
 
 
@@ -147,42 +171,14 @@ if(isset($_GET['code'])) {
     $id_token = $response->id_token;
     $claims_component = explode('.', $id_token)[1];
     $userinfo = json_decode(base64_decode($claims_component));
-    $_SESSION['username'] = $userinfo->email;
-    echo '<p>Hello '.htmlspecialchars($_SESSION['username']).'</p>';
+    $_SESSION['sub'] = $userinfo->sub;
+    echo '<p>Hello '.htmlspecialchars($_SESSION['sub']).'</p>';
   }
 
   
 
   echo '<p><a href="/">Home Page</a></p>';
   die();
-
-
-
-
-
-} else {
-
-
-
-
-
-  // Create the link to send the user to log in
-
-  // Generate a random state parameter for CSRF security
-  $_SESSION['state'] = bin2hex(random_bytes(5));
-
-  
-  // Build the authorization URL by starting with the authorization endpoint
-  // and adding a few query string parameters identifying this application
-  $authorize_url = $metadata->authorization_endpoint.'?'.http_build_query([
-    // TODO: fill in the query string parameters here!
-  ]);
-
-  echo '<p>Not logged in</p>';
-  echo '<p><a href="'.$authorize_url.'">Log In</a></p>';
-
-
-
 
 
 
