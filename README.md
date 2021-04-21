@@ -3,9 +3,10 @@ OAuth Exercise
 
 `index.php`
 
-* Fill in the missing parameters in `index.php` to complete the OAuth flow
-* Convert the code to use the PKCE flow
-* Add in a request to get an ID token via the authorization code flow to know who logged in
+This is the main OAuth client code from the demos.
+
+* Fill in the missing parameters in `index.php` to complete the authorization code flow
+* As an exercise, modify the code to request an ID token to know who logged in
 
 Run this code from the command line:
 
@@ -13,9 +14,12 @@ Run this code from the command line:
 php -S 127.0.0.1:8080
 ```
 
-`implicit.html`
+`api.php`
 
-This is a static HTML page that you can use as a template to try out the Implicit flow for OAuth or OpenID Connect.
+This is a minimal API (resource server) that returns a list of photos when presented with a valid access token.
+
+Experiment with different ways to enforce what a "valid" access token is, by using groups and scopes and other claims present in the access token.
+
 
 `pkce.html`
 

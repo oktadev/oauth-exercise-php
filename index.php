@@ -29,6 +29,13 @@ $metadata_url = $oauth_server.'/.well-known/oauth-authorization-server';
 // that we need later, such as the authorization and token endpoints
 $metadata = http($metadata_url);
 
+$authorization_endpoint = $metadata->authorization_endpoint;
+$token_endpoint = $metadata->token_endpoint;
+
+
+// Or you can hard-code the authorization and token endpoints
+$authorization_endpoint = 'https://dev-xxxxxxxx.okta.com/oauth2/default/v1/authorize';
+$token_endpoint = 'https://dev-xxxxxxxx.okta.com/oauth2/default/v1/token';
 
 
 
@@ -39,11 +46,7 @@ $metadata = http($metadata_url);
 // If they click log out, destroy the session and redirect
 if(isset($_GET['logout'])) {
   session_destroy();
-  header('Location: '.$metadata->end_session_endpoint.'?'.http_build_query([
-    'id_token_hint' => $_SESSION['id_token'],
-    'post_logout_redirect_uri' => $redirect_uri,
-  ]));
-  #header('Location: /');
+  header('Location: /');
   die();
 }
 
@@ -91,23 +94,30 @@ if(!isset($_GET['code'])) {
 
 
 
-
   // Create the link to send the user to log in
 
   // Generate a random state parameter for CSRF security
-  $_SESSION['state'] = bin2hex(random_bytes(5));
+  $_SESSION['state'] = bin2hex(random_bytes(10));
+
+  // Create the PKCE code verifier and code challenge
+  $_SESSION['code_verifier'] = bin2hex(random_bytes(50));
+  $code_challenge = base64_urlencode(hash('sha256', $_SESSION['code_verifier'], true));
 
   
   // Build the authorization URL by starting with the authorization endpoint
   // and adding a few query string parameters identifying this application
   $authorize_url = $metadata->authorization_endpoint.'?'.http_build_query([
+    'response_type' => 'code',
+    'client_id' => $client_id,
+    'state' => $_SESSION['state'],
+    'redirect_uri' => $redirect_uri,
+    'code_challenge' => $code_challenge,
+    'code_challenge_method' => 'S256',
+    'scope' => 'photos', // Create a scope in your authorization server first!
   ]);
 
   echo '<p>Not logged in</p>';
   echo '<p><a href="'.$authorize_url.'">Log In</a></p>';
-
-  // header('Location: '.$authorize_url);
-
 
 
 
@@ -130,6 +140,12 @@ if(!isset($_GET['code'])) {
 
   // Exchange the authorization code now!
   $response = http($metadata->token_endpoint, [
+    'grant_type' => 'authorization_code',
+    'code' => $_GET['code'],
+    'redirect_uri' => $redirect_uri,
+    'client_id' => $client_id,
+    'client_secret' => $client_secret,
+    'code_verifier' => $_SESSION['code_verifier'],
   ]);
 
 
@@ -150,9 +166,14 @@ if(!isset($_GET['code'])) {
   }
 
 
-
   echo '<h3>Access Token Response</h3>';
   echo '<pre>'; print_r($response); echo '</pre>';
+
+
+  echo '<h2>Access Token</h2>';
+  echo '<input type="text" value="'.$response->access_token.'">';
+  echo '<h2>ID Token</h2>';
+  echo '<input type="text" value="'.$response->id_token.'">';
   
 
 

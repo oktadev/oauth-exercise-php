@@ -13,7 +13,9 @@ $metadata = http($metadata_url);
 
 
 $response = http($metadata->token_endpoint, [
-
+	'grant_type' => 'client_credentials',
+	'client_id' => $client_id,
+	'client_secret' => $client_secret,
 ]);
 
 
